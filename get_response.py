@@ -8,6 +8,8 @@ from pydantic import BaseModel
 import joblib
 import tensorflow as tf
 import requests
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 
 def load_data(path):
@@ -27,11 +29,9 @@ def create_seq(data, input_steps, output_steps):
 x, y = create_seq(data, 24, 24)
 print(x.shape)
 
-from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 print(x_train.shape, y_train.shape)
 
-from sklearn.preprocessing import MinMaxScaler
 scaler = MinMaxScaler()
 num_feature = x_train.shape[2]
 x_train_reshaped = x_train.reshape(-1, num_feature)
@@ -46,9 +46,9 @@ y_test_scaled = scaler.transform(y_test_reshaped).reshape(y_test.shape)
 print(x_train_scaled.shape, y_train_scaled.shape)
 print(x_test_scaled.shape, y_test_scaled.shape)
 
-# # Prepare your test data (replace with your actual test data)
-x_test = x_test_scaled  # shape: (batch, input_steps, num_features)
-y_test = y_test_scaled  # shape: (batch, output_steps, num_features)
+# # Prepare your test data
+x_test = x_test_scaled  # for an example
+y_test = y_test_scaled  # for an example
 
 data = {
      "x": np.asarray(x_test).tolist(),
