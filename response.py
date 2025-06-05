@@ -1,0 +1,58 @@
+# Client code (to be run separately, outside of the FastAPI app)
+import requests
+import numpy as np
+import pandas as pd
+import numpy as np
+from fastapi import FastAPI
+from pydantic import BaseModel
+import joblib
+import tensorflow as tf
+import requests
+
+
+def load_data(path):
+    data = pd.read_csv(path, index_col=0, parse_dates=True)
+    return data.values
+
+path = 'transformed_data.csv'
+data = load_data(path)
+print(data.shape)
+
+def create_seq(data, input_steps, output_steps):
+    x, y = [], []
+    for i in range(len(data) - input_steps - output_steps + 1):
+        x.append(data[i:(i+input_steps), :])
+        y.append(data[(i+input_steps):(i+input_steps+output_steps), :])
+    return np.array(x), np.array(y)
+x, y = create_seq(data, 24, 24)
+print(x.shape)
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+print(x_train.shape, y_train.shape)
+
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler()
+num_feature = x_train.shape[2]
+x_train_reshaped = x_train.reshape(-1, num_feature)
+x_test_reshaped = x_test.reshape(-1, num_feature)
+x_train_scaled = scaler.fit_transform(x_train_reshaped).reshape(x_train.shape)
+x_test_scaled = scaler.transform(x_test_reshaped).reshape(x_test.shape)
+y_train_reshaped = y_train.reshape(-1, num_feature)
+y_test_reshaped = y_test.reshape(-1, num_feature)
+y_train_scaled = scaler.fit_transform(y_train_reshaped).reshape(y_train.shape)
+y_test_scaled = scaler.transform(y_test_reshaped).reshape(y_test.shape) 
+
+print(x_train_scaled.shape, y_train_scaled.shape)
+print(x_test_scaled.shape, y_test_scaled.shape)
+
+# # Prepare your test data (replace with your actual test data)
+x_test = x_test_scaled  # shape: (batch, input_steps, num_features)
+y_test = y_test_scaled  # shape: (batch, output_steps, num_features)
+
+data = {
+     "x": np.asarray(x_test).tolist(),
+     "y": np.asarray(y_test).tolist() }
+
+response = requests.post("http://localhost:8000/evaluate", json=data)
+print(response.json())
