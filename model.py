@@ -55,14 +55,13 @@ def create_model(input_shape):
     x = Dropout(0.2)(x)
     x = LSTM(64, return_sequences=True)(x)
     x = Dropout(0.2)(x)
-    x = LSTM(64, return_sequences=True)(x)  # <-- keep return_sequences=True
+    x = LSTM(64, return_sequences=True)(x)
     x = Dropout(0.2)(x)
-    output_layer = Dense(input_shape[1])(x)  # output shape: (batch, 24, num_feature)
+    output_layer = Dense(input_shape[1])(x) 
     model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
     model.compile(optimizer='adam', loss='mean_squared_error')
     return model  
     
-
 input_shape = (x_train_scaled.shape[1], x_train_scaled.shape[2])
 model = create_model(input_shape)
 model.summary()
@@ -70,8 +69,8 @@ model.summary()
 print(x_test_scaled.shape, y_test_scaled.shape)
 model.fit(x_train_scaled, y_train_scaled, epochs=50, batch_size=32, validation_split=0.2)
 
-model.save('fastapi/lstm_model_for_fastapi.h5')
-model.load_weights('fastapi/lstm_model_for_fastapi.h5')
+model.save('model_for_fastapi.h5')
+model.load_weights('model_for_fastapi.h5')
 predictions = model.predict(x_test_scaled)
 
 def evaluate_model(model, x_test_scaled, y_test_scaled, scaler):
@@ -88,6 +87,7 @@ def evaluate_model(model, x_test_scaled, y_test_scaled, scaler):
     mape = np.mean(np.abs((preds_inv - y_true_inv)[mask] / y_true_inv[mask])) * 100
     
     return mse, rmse, mae, mape
+    
 print("Evaluating model...")
 mse, rmse, mae, mape = evaluate_model(model, x_test_scaled, y_test_scaled, scaler)
 print(f"MSE: {mse}, RMSE: {rmse}, MAE: {mae}, MAPE: {mape}")
@@ -96,9 +96,9 @@ joblib.dump(scaler, "fastapi/lstm_model_for_fastapi.pkl")
 
 app = FastAPI()
 
-# Load your trained model and scaler (ensure these files exist)
-model = tf.keras.models.load_model("fastapi/lstm_model_for_fastapi.h5")
-scaler = joblib.load("fastapi/lstm_model_for_fastapi.pkl")
+# Load the trained model and scaler
+model = tf.keras.models.load_model("model_for_fastapi.h5")
+scaler = joblib.load("model_for_fastapi.pkl")
 
 class InputData(BaseModel):
     data: list  # Should be shaped as (input_steps, num_features)
