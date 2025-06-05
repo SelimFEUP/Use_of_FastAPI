@@ -1,4 +1,4 @@
-# Use_of_FastAPI
+# Use_of_FastAPI_in_Regression_problems
 This repository aims to help using deploying a DL-based regression model using FastAPI. It will then evaluate the model and provide end-point metrics values.
 
 # How to use
